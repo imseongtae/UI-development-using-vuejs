@@ -1,5 +1,6 @@
 import SearchModel from './models/SearchModel.js';
 import KeywordModel from './models/KeywordModel.js';
+import HistoryModel from './models/HistoryModel.js';
 
 
 new Vue({
@@ -14,6 +15,7 @@ new Vue({
       selectedTab: '',
       searchResult: [],
       keywords: [],
+      history: [],
     }
   },
   created () {
@@ -21,12 +23,13 @@ new Vue({
     // 탭의 이름이 selectedTab과 같도록 설정
     this.selectedTab = this.tabs[0]; // 값이 추천 검색어가 됨
     this.fetchKeyword();
+    this.fetchHistory();
   },
   methods: {    
     onSubmit(e) {
       // debugger;
       // this.query = '';
-      this.search()      
+      this.search();
     },
     onKeyup() {
       if (!this.query.length) this.onReset()
@@ -38,7 +41,9 @@ new Vue({
       SearchModel.list().then(data => {
         this.submitted = true;
         this.searchResult = data;
-      })
+      });
+      HistoryModel.add(this.query)
+      this.fetchHistory();
     },
     resetForm() {
       this.query = '';
@@ -60,6 +65,21 @@ new Vue({
       // debugger
       this.query = keyword;
       this.search()
-    }
+    },
+    fetchHistory() {
+      HistoryModel.list().then(data => {
+        this.history = data
+      })
+    },
+    onClickRemoveHistory(keyword) {
+      console.log('이벤트 버블링 중지', keyword)
+      HistoryModel.remove(keyword)
+      this.fetchHistory();
+    },
+    // 나는 메소드를 따로 만들었지만... 공통 메서드에서 로직을 실행하는 게 더 좋다.
+    // AddHistoryKeyword(keyword) {
+    //   HistoryModel.add(keyword)
+    //   this.fetchHistory();
+    // }
   },
 })
